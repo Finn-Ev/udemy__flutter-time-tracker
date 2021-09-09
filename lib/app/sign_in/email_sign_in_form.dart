@@ -1,15 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:time_tracker_flutter_course/app/util/validators.dart';
 import 'package:time_tracker_flutter_course/common_widgets/form_submit_button.dart';
+import 'package:time_tracker_flutter_course/common_widgets/show_alert_dialog.dart';
+import 'package:time_tracker_flutter_course/common_widgets/show_exception_alert_dialog.dart';
 import 'package:time_tracker_flutter_course/services/auth.dart';
 
 enum EmailSignInFormType { signIn, register }
 
 class EmailSignInForm extends StatefulWidget with EmailAndPasswordValidators {
-  EmailSignInForm({Key key, @required this.auth}) : super(key: key);
-
-  final AuthBase auth;
-
   @override
   _EmailSignInFormState createState() => _EmailSignInFormState();
 }
@@ -26,21 +28,40 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
   bool _submitted = false;
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   void _submit() async {
     setState(() {
       _submitted = true;
       _isLoading = true;
     });
     try {
+      final auth = Provider.of<AuthBase>(context, listen: false);
       // await Future.delayed(Duration(seconds: 3));
       if (_formType == EmailSignInFormType.signIn) {
-        await widget.auth.signInWithEmailAndPassword(_email, _password);
+        await auth.signInWithEmailAndPassword(_email, _password);
       } else {
-        await widget.auth.createUserWithEmailAndPassword(_email, _password);
+        await auth.createUserWithEmailAndPassword(_email, _password);
       }
       Navigator.of(context).pop();
-    } on Exception catch (e) {
-      print(e.toString());
+    } on FirebaseException catch (e) {
+      showExceptionAlertDialog(
+        context,
+        title: 'Sign in failed',
+        exception: e,
+      );
+    } on PlatformException catch (e) {
+      showAlertDialog(
+        context,
+        title: 'Sign in failed',
+        content: e.message,
+        defaultActionText: 'OK',
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -104,7 +125,6 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
         !_isLoading;
 
     return [
-      // _isLoading ? LinearProgressIndicator() : Container(),
       _buildEmailTextField(),
       _buildPasswordTextField(submitEnabled),
       SizedBox(
@@ -119,7 +139,7 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
         child: Text(secondaryText),
         style: ElevatedButton.styleFrom(),
       ),
-      _isLoading ? LinearProgressIndicator() : Container(),
+      if (_isLoading) LinearProgressIndicator(),
     ];
   }
 
