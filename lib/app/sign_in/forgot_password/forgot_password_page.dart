@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:time_tracker_flutter_course/app/sign_in/forgot_password_form.dart';
+import 'package:time_tracker_flutter_course/app/sign_in/forgot_password/forgot_password_form.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   @override
@@ -14,7 +14,7 @@ class ForgotPasswordPage extends StatelessWidget {
         ),
       ),
       appBar: AppBar(
-        title: Text('Reset Password'),
+        title: Text('Forgot Password'),
         elevation: 2,
       ),
       backgroundColor: Colors.grey[200],
