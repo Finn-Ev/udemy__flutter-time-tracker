@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:time_tracker_flutter_course/app/sign_in/forgot_password/forgot_password_page.dart';
 import 'package:time_tracker_flutter_course/app/util/validators.dart';
 import 'package:time_tracker_flutter_course/common_widgets/form_submit_button.dart';
 import 'package:time_tracker_flutter_course/common_widgets/show_alert_dialog.dart';
@@ -43,11 +44,19 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
     try {
       final auth = Provider.of<AuthBase>(context, listen: false);
       // await Future.delayed(Duration(seconds: 3));
-      if (_formType == EmailSignInFormType.signIn) {
-        await auth.signInWithEmailAndPassword(_email, _password);
-      } else {
-        await auth.createUserWithEmailAndPassword(_email, _password);
+
+      switch (_formType) {
+        case EmailSignInFormType.signIn:
+          await auth.signInWithEmailAndPassword(_email, _password);
+          break;
+        case EmailSignInFormType.register:
+          await auth.createUserWithEmailAndPassword(_email, _password);
+          break;
+        // case EmailSignInFormType.forgotPassword:
+        //   await auth.sendPasswordResetEmail(_email);
+        //   break;
       }
+
       Navigator.of(context).pop();
     } on FirebaseException catch (e) {
       showExceptionAlertDialog(
@@ -69,6 +78,15 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
     }
   }
 
+  Future<void> _forgotPassword(BuildContext context) async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: false,
+        builder: (context) => ForgotPasswordPage(),
+      ),
+    );
+  }
+
   void _toggleFormType() {
     setState(() {
       _formType = _formType == EmailSignInFormType.signIn
@@ -77,16 +95,12 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
     });
   }
 
-  _rebuildWidget() {
-    setState(() {});
-  }
-
   List<Widget> _buildChildren() {
     final primaryText =
         _formType == EmailSignInFormType.signIn ? 'Sign in' : 'Register';
 
     final secondaryText = _formType == EmailSignInFormType.signIn
-        ? 'Need an account? Register'
+        ? 'Need an account? Register '
         : 'Already have an account? Sign in';
 
     TextField _buildEmailTextField() {
@@ -99,14 +113,15 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
             labelText: 'Email',
             errorText: showErrorText ? widget.invalidEmailErrorText : null),
         keyboardType: TextInputType.emailAddress,
-        onChanged: (value) => _rebuildWidget(),
+        onChanged: (value) => setState(() {}),
         textInputAction: TextInputAction.next,
       );
     }
 
-    TextField _buildPasswordTextField(bool submitEnabled) {
+    Widget _buildPasswordTextField(bool submitEnabled) {
       bool showErrorText =
           !widget.emailValidator.isValid(_password) && _submitted;
+
       return TextField(
         controller: _passwordController,
         decoration: InputDecoration(
@@ -115,7 +130,7 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
             errorText: showErrorText ? widget.invalidPasswordErrorText : null),
         obscureText: true,
         textInputAction: TextInputAction.done,
-        onChanged: (value) => _rebuildWidget(),
+        onChanged: (value) => setState(() {}),
         onEditingComplete: submitEnabled ? _submit : null,
       );
     }
@@ -134,10 +149,16 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
         primaryText,
         onPressed: submitEnabled ? _submit : null,
       ),
+      SizedBox(
+        height: 20,
+      ),
       TextButton(
         onPressed: !_isLoading ? _toggleFormType : null,
         child: Text(secondaryText),
-        style: ElevatedButton.styleFrom(),
+      ),
+      TextButton(
+        onPressed: !_isLoading ? () => _forgotPassword(context) : null,
+        child: Text('Forgot password?'),
       ),
       if (_isLoading) LinearProgressIndicator(),
     ];
