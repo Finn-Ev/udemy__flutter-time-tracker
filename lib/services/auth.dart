@@ -18,6 +18,8 @@ abstract class AuthBase {
   Future<User> signInWithFacebook();
 
   Future<void> signOut();
+
+  Future<void> sendPasswordResetEmail(String email);
 }
 
 class Auth implements AuthBase {
@@ -117,5 +119,10 @@ class Auth implements AuthBase {
     await facebookLogin.logOut();
 
     await _firebaseAuth.signOut();
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 }
