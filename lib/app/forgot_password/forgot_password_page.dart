@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:time_tracker_flutter_course/app/sign_in/forgot_password/forgot_password_form.dart';
+import 'package:time_tracker_flutter_course/app/forgot_password/forgot_password_form.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   @override
@@ -9,7 +9,7 @@ class ForgotPasswordPage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Card(
-            child: ForgotPasswordForm(),
+            child: ForgotPasswordForm.create(context),
           ),
         ),
       ),

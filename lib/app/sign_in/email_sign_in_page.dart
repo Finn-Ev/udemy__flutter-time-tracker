@@ -9,7 +9,7 @@ class EmailSignInPage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Card(
-            child: EmailSignInForm(),
+            child: EmailSignInForm.create(context),
           ),
         ),
       ),
