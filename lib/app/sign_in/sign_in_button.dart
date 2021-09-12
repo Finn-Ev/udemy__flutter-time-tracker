@@ -11,7 +11,13 @@ class SignInButton extends CustomElevatedButton {
   }) : super(
             backgroundColor: backgroundColor,
             borderRadius: borderRadius,
-            child: Text(text),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 17,
+              ),
+            ),
             onPressed: onPressed,
             textColor: textColor,
             height: 45);

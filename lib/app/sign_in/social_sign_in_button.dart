@@ -21,7 +21,7 @@ class SocialSignInButton extends CustomElevatedButton {
                 text,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 15,
+                  fontSize: 17,
                 ),
               ),
               Opacity(

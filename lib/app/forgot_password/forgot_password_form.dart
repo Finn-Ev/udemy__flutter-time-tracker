@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:time_tracker_flutter_course/app/forgot_password/forgot_password_bloc.dart';
 import 'package:time_tracker_flutter_course/app/forgot_password/forgot_password_model.dart';
 import 'package:time_tracker_flutter_course/common_widgets/form_submit_button.dart';
 import 'package:time_tracker_flutter_course/common_widgets/show_alert_dialog.dart';
@@ -9,21 +8,18 @@ import 'package:time_tracker_flutter_course/common_widgets/show_exception_alert_
 import 'package:time_tracker_flutter_course/services/auth.dart';
 
 class ForgotPasswordForm extends StatefulWidget {
-  ForgotPasswordForm({@required this.bloc});
+  ForgotPasswordForm({@required this.model});
 
-  final ForgotPasswordBloc bloc;
+  final ForgotPasswordModel model;
 
   static Widget create(BuildContext context) {
     final auth = Provider.of<AuthBase>(context, listen: false);
 
-    return Provider<ForgotPasswordBloc>(
-      create: (_) => ForgotPasswordBloc(auth: auth),
-      child: Consumer<ForgotPasswordBloc>(
-        builder: (_, bloc, __) => ForgotPasswordForm(
-          bloc: bloc,
-        ),
+    return ChangeNotifierProvider<ForgotPasswordModel>(
+      create: (_) => ForgotPasswordModel(auth: auth),
+      child: Consumer<ForgotPasswordModel>(
+        builder: (_, model, __) => ForgotPasswordForm(model: model),
       ),
-      dispose: (_, bloc) => bloc.dispose(),
     );
   }
 
@@ -34,9 +30,11 @@ class ForgotPasswordForm extends StatefulWidget {
 class _ForgotPasswordState extends State<ForgotPasswordForm> {
   final TextEditingController _emailController = TextEditingController();
 
+  ForgotPasswordModel get model => widget.model;
+
   void _submit() async {
     try {
-      await widget.bloc.submit();
+      await model.submit();
       showAlertDialog(
         context,
         title: 'Success',
@@ -85,24 +83,18 @@ class _ForgotPasswordState extends State<ForgotPasswordForm> {
       ),
       keyboardType: TextInputType.emailAddress,
       onEditingComplete: model.isSubmitEnabled ? _submit : null,
-      onChanged: widget.bloc.updateEmail,
+      onChanged: model.updateEmail,
     );
   }
 
   Widget build(BuildContext context) {
-    return StreamBuilder<Object>(
-        stream: widget.bloc.modelStream,
-        initialData: ForgotPasswordModel(),
-        builder: (context, snapshot) {
-          final ForgotPasswordModel model = snapshot.data;
-          return Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: _buildChildren(model),
-            ),
-          );
-        });
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: _buildChildren(model),
+      ),
+    );
   }
 }

@@ -3,29 +3,25 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:time_tracker_flutter_course/app/sign_in/email_sign_in_bloc.dart';
-import 'package:time_tracker_flutter_course/app/sign_in/email_sign_in_model.dart';
+import 'package:time_tracker_flutter_course/app/sign_in/email_sign_in/email_sign_in_model.dart';
 import 'package:time_tracker_flutter_course/app/forgot_password/forgot_password_page.dart';
 import 'package:time_tracker_flutter_course/common_widgets/form_submit_button.dart';
 import 'package:time_tracker_flutter_course/common_widgets/show_exception_alert_dialog.dart';
 import 'package:time_tracker_flutter_course/services/auth.dart';
 
 class EmailSignInForm extends StatefulWidget {
-  EmailSignInForm({@required this.bloc});
+  EmailSignInForm({@required this.model});
 
-  final EmailSignInBloc bloc;
+  final EmailSignInModel model;
 
   static Widget create(BuildContext context) {
     final auth = Provider.of<AuthBase>(context, listen: false);
 
-    return Provider<EmailSignInBloc>(
-      create: (_) => EmailSignInBloc(auth: auth),
-      child: Consumer<EmailSignInBloc>(
-        builder: (_, bloc, __) => EmailSignInForm(
-          bloc: bloc,
-        ),
+    return ChangeNotifierProvider<EmailSignInModel>(
+      create: (_) => EmailSignInModel(auth: auth),
+      child: Consumer<EmailSignInModel>(
+        builder: (_, model, __) => EmailSignInForm(model: model),
       ),
-      dispose: (_, bloc) => bloc.dispose(),
     );
   }
 
@@ -36,6 +32,8 @@ class EmailSignInForm extends StatefulWidget {
 class _EmailSignInFormState extends State<EmailSignInForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  EmailSignInModel get model => widget.model;
 
   @override
   void dispose() {
@@ -55,14 +53,14 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
 
   Future<void> _submit() async {
     try {
-      await widget.bloc.submit();
+      await model.submit();
       Navigator.of(context).pop();
     } on FirebaseException catch (e) {
       showExceptionAlertDialog(context, title: 'Sign in failed', exception: e);
     }
   }
 
-  List<Widget> _buildChildren(EmailSignInModel model) {
+  List<Widget> _buildChildren() {
     TextField _buildEmailTextField() {
       return TextField(
         controller: _emailController,
@@ -73,12 +71,12 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
           errorText: model.emailErrorText,
         ),
         keyboardType: TextInputType.emailAddress,
-        onChanged: widget.bloc.updateEmail,
+        onChanged: model.updateEmail,
         textInputAction: TextInputAction.next,
       );
     }
 
-    Widget _buildPasswordTextField(bool submitEnabled) {
+    Widget _buildPasswordTextField() {
       return TextField(
         controller: _passwordController,
         decoration: InputDecoration(
@@ -88,14 +86,14 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
         ),
         obscureText: true,
         textInputAction: TextInputAction.done,
-        onChanged: widget.bloc.updatePassword,
-        onEditingComplete: submitEnabled ? _submit : null,
+        onChanged: model.updatePassword,
+        onEditingComplete: model.isSubmitEnabled ? _submit : null,
       );
     }
 
     return [
       _buildEmailTextField(),
-      _buildPasswordTextField(model.isSubmitEnabled),
+      _buildPasswordTextField(),
       SizedBox(
         height: 20,
       ),
@@ -107,7 +105,7 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
         height: 20,
       ),
       TextButton(
-        onPressed: !model.isLoading ? widget.bloc.toggleFormType : null,
+        onPressed: !model.isLoading ? model.toggleFormType : null,
         child: Text(model.secondaryButtonText),
       ),
       TextButton(
@@ -120,20 +118,13 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<EmailSignInModel>(
-      stream: widget.bloc.modelStream,
-      initialData: EmailSignInModel(),
-      builder: (context, snapshot) {
-        final EmailSignInModel model = snapshot.data;
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: _buildChildren(model),
-          ),
-        );
-      },
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: _buildChildren(),
+      ),
     );
   }
 }
