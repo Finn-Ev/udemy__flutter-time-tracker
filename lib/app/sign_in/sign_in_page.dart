@@ -1,4 +1,5 @@
 import 'package:apple_sign_in/apple_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -118,15 +119,23 @@ class SignInPage extends StatelessWidget {
           SizedBox(
             height: 10,
           ),
-          AppleSignInButton(
-            type: ButtonType.signIn,
-            onPressed: () => _signInWithApple(context),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          SizedBox(
-            height: 10,
+          FutureBuilder(
+            future: AppleSignIn.isAvailable(),
+            builder: (context, snapshot) {
+              if (snapshot.data == true) {
+                return Column(
+                  children: [
+                    AppleSignInButton(
+                      onPressed:
+                          !isLoading ? () => _signInWithApple(context) : () {},
+                    ),
+                    SizedBox(height: 10)
+                  ],
+                );
+              } else {
+                return Container();
+              }
+            },
           ),
           SignInButton(
             'Sign in with email',
