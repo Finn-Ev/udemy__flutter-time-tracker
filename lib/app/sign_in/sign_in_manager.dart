@@ -29,4 +29,6 @@ class SignInManager {
 
   Future<User> signInWithFacebook() async =>
       await _signIn(auth.signInWithFacebook);
+
+  Future<User> signInWithApple() async => await _signIn(auth.signInWithApple);
 }
